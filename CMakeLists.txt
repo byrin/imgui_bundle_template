@@ -23,10 +23,10 @@ if (NOT TARGET imgui_bundle)
 endif()
 
 
+
+
 # Build your app
 # ==============
-imgui_bundle_add_app(imgui_bundle_example_integration hello_world.cpp)
-
 # imgui_bundle_add_app is a helper function, similar to cmake's "add_executable"
 # Usage:
 # imgui_bundle_add_app(app_name file1.cpp file2.cpp ...)
@@ -38,3 +38,38 @@ imgui_bundle_add_app(imgui_bundle_example_integration hello_world.cpp)
 #
 # Now you can build your app with
 #     mkdir build && cd build && cmake .. && cmake --build .
+
+# By default, we install in a portable way (i.e. assets and executable are in the same folder)
+option(EXAMPLE_INTEGRATION_PORTABLE_INSTALL "Install in a portable way" ON)
+
+
+if (EXAMPLE_INTEGRATION_PORTABLE_INSTALL)
+    # portable installation is the easiest way to install the app
+    imgui_bundle_add_app(imgui_bundle_example_integration hello_world.cpp)
+else()
+    # Disable HelloImGui default install behavior
+    set(HELLOIMGUI_ADD_APP_WITH_INSTALL OFF CACHE BOOL "" FORCE)
+
+    imgui_bundle_add_app(imgui_bundle_example_integration hello_world.cpp)
+
+    # If not portable, we have to
+    # - install the app manually
+    # - install the assets manually
+    # - pass the assets location to the app, and set this assets location in main() via the compile definition ASSETS_LOCATION:
+    #     #ifdef ASSETS_LOCATION \n HelloImGui::SetAssetsFolder(ASSETS_LOCATION); \n #endif
+    if (NOT EXAMPLE_INTEGRATION_PORTABLE_INSTALL)
+        include(GNUInstallDirs)
+        install(TARGETS imgui_bundle_example_integration DESTINATION ${CMAKE_INSTALL_BINDIR})
+        set(assets_install_dir ${CMAKE_INSTALL_DATADIR}/imgui_bundle_example_integration)
+        if (NOT IS_ABSOLUTE ${assets_install_dir})
+            set(assets_install_dir ${CMAKE_INSTALL_PREFIX}/${assets_install_dir})
+        endif()
+        install(DIRECTORY assets DESTINATION ${assets_install_dir})
+        target_compile_definitions(imgui_bundle_example_integration PRIVATE ASSETS_LOCATION="${assets_install_dir}/assets")
+    endif()
+
+endif()
+
+
+
+

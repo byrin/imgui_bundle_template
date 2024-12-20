@@ -59,6 +59,10 @@ void Gui()
 
 int main(int , char *[])
 {
+#ifdef ASSETS_LOCATION
+    HelloImGui::SetAssetsFolder(ASSETS_LOCATION);
+#endif
+
     HelloImGui::SimpleRunnerParams runnnerParams;
     runnnerParams.guiFunction = Gui;
     runnnerParams.windowSize = {600, 800};
